@@ -20,6 +20,7 @@ export default function DashboardPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [search, setSearch] = useState('');
+    const [appliedSearch, setAppliedSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
@@ -28,7 +29,7 @@ export default function DashboardPage() {
         try {
             setLoading(true);
             const response = await api.get('/tasks', {
-                params: { page, search, status: statusFilter || undefined },
+                params: { page, search: appliedSearch, status: statusFilter || undefined },
             });
             setTasks(response.data.tasks);
             setTotalPages(response.data.totalPages);
@@ -37,11 +38,24 @@ export default function DashboardPage() {
         } finally {
             setLoading(false);
         }
-    }, [page, search, statusFilter]);
+    }, [page, appliedSearch, statusFilter]);
 
     useEffect(() => {
         fetchTasks();
     }, [fetchTasks]);
+
+    const handleSearch = () => {
+        setPage(1);
+        setAppliedSearch(search);
+        setSearch('');
+    };
+
+    const handleClearFilters = () => {
+        setSearch('');
+        setAppliedSearch('');
+        setStatusFilter('');
+        setPage(1);
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('accessToken');
@@ -115,22 +129,41 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-                    <input
-                        type="text"
-                        placeholder="Search tasks..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="flex-1 rounded-md border border-gray-300 p-2"
-                    />
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="rounded-md border border-gray-300 p-2"
-                    >
-                        <option value="">All Status</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="COMPLETED">Completed</option>
-                    </select>
+                    <div className="flex flex-1 gap-2">
+                        <input
+                            type="text"
+                            placeholder="Search tasks..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            className="flex-1 rounded-md border border-gray-300 p-2"
+                        />
+                        <button
+                            onClick={handleSearch}
+                            className="rounded-md bg-gray-800 px-4 py-2 text-white hover:bg-gray-900"
+                        >
+                            Search
+                        </button>
+                    </div>
+                    <div className="flex gap-2">
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="rounded-md border border-gray-300 p-2"
+                        >
+                            <option value="">All Status</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="COMPLETED">Completed</option>
+                        </select>
+                        {(appliedSearch || statusFilter) && (
+                            <button
+                                onClick={handleClearFilters}
+                                className="rounded-md bg-red-100 px-4 py-2 text-red-600 hover:bg-red-200"
+                            >
+                                Clear
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {loading ? (
