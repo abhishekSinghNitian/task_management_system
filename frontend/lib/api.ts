@@ -1,7 +1,17 @@
 import axios from 'axios';
 
+const getBaseUrl = () => {
+    let url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    if (!url.startsWith('http')) {
+        url = `https://${url}`;
+    }
+    return url;
+};
+
+const baseURL = getBaseUrl();
+
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+    baseURL,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -24,7 +34,7 @@ api.interceptors.response.use(
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
                 try {
-                    const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/auth/refresh`, { refreshToken });
+                    const { data } = await axios.post(`${baseURL}/auth/refresh`, { refreshToken });
                     localStorage.setItem('accessToken', data.accessToken);
                     originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
                     return api(originalRequest);
