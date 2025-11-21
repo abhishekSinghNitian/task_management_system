@@ -24,6 +24,18 @@ export default function DashboardPage() {
     const [statusFilter, setStatusFilter] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                router.push('/auth/login');
+            } else {
+                setIsAuthenticated(true);
+            }
+        }
+    }, [router]);
 
     const fetchTasks = useCallback(async () => {
         try {
@@ -107,111 +119,113 @@ export default function DashboardPage() {
         }
     };
 
-    return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="mx-auto max-w-4xl">
-                <div className="mb-8 flex items-center justify-between">
-                    <h1 className="text-3xl font-bold text-gray-900">Task Dashboard</h1>
-                    <div className="space-x-4">
-                        <button
-                            onClick={handleCreateTask}
-                            className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                        >
-                            New Task
-                        </button>
-                        <button
-                            onClick={handleLogout}
-                            className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </div>
-
-                <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-                    <div className="flex flex-1 gap-2">
-                        <input
-                            type="text"
-                            placeholder="Search tasks..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            className="flex-1 rounded-md border border-gray-300 p-2"
-                        />
-                        <button
-                            onClick={handleSearch}
-                            className="rounded-md bg-gray-800 px-4 py-2 text-white hover:bg-gray-900"
-                        >
-                            Search
-                        </button>
-                    </div>
-                    <div className="flex gap-2">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="rounded-md border border-gray-300 p-2"
-                        >
-                            <option value="">All Status</option>
-                            <option value="PENDING">Pending</option>
-                            <option value="COMPLETED">Completed</option>
-                        </select>
-                        {(appliedSearch || statusFilter) && (
+    {
+        return isAuthenticated && (
+            <div className="min-h-screen bg-gray-50 p-8">
+                <div className="mx-auto max-w-4xl">
+                    <div className="mb-8 flex items-center justify-between">
+                        <h1 className="text-3xl font-bold text-gray-900">Task Dashboard</h1>
+                        <div className="space-x-4">
                             <button
-                                onClick={handleClearFilters}
-                                className="rounded-md bg-red-100 px-4 py-2 text-red-600 hover:bg-red-200"
+                                onClick={handleCreateTask}
+                                className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                             >
-                                Clear
+                                New Task
                             </button>
-                        )}
+                            <button
+                                onClick={handleLogout}
+                                className="rounded-md bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                            >
+                                Logout
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                {loading ? (
-                    <div className="text-center">Loading...</div>
-                ) : (
-                    <div className="grid gap-4">
-                        {tasks.map((task) => (
-                            <TaskCard
-                                key={task.id}
-                                task={task}
-                                onEdit={handleEditTask}
-                                onDelete={handleDeleteTask}
-                                onToggle={handleToggleTask}
+                    <div className="mb-6 flex flex-col gap-4 sm:flex-row">
+                        <div className="flex flex-1 gap-2">
+                            <input
+                                type="text"
+                                placeholder="Search tasks..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                className="flex-1 rounded-md border border-gray-300 p-2"
                             />
-                        ))}
-                        {tasks.length === 0 && (
-                            <div className="text-center text-gray-500">No tasks found.</div>
-                        )}
+                            <button
+                                onClick={handleSearch}
+                                className="rounded-md bg-gray-800 px-4 py-2 text-white hover:bg-gray-900"
+                            >
+                                Search
+                            </button>
+                        </div>
+                        <div className="flex gap-2">
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="rounded-md border border-gray-300 p-2"
+                            >
+                                <option value="">All Status</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="COMPLETED">Completed</option>
+                            </select>
+                            {(appliedSearch || statusFilter) && (
+                                <button
+                                    onClick={handleClearFilters}
+                                    className="rounded-md bg-red-100 px-4 py-2 text-red-600 hover:bg-red-200"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                        </div>
                     </div>
-                )}
 
-                <div className="mt-6 flex justify-center space-x-2">
-                    <button
-                        disabled={page === 1}
-                        onClick={() => setPage((p) => p - 1)}
-                        className="rounded-md bg-gray-200 px-3 py-1 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
-                    <span className="self-center text-gray-600">
-                        Page {page} of {totalPages || 1}
-                    </span>
-                    <button
-                        disabled={page >= totalPages}
-                        onClick={() => setPage((p) => p + 1)}
-                        className="rounded-md bg-gray-200 px-3 py-1 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
+                    {loading ? (
+                        <div className="text-center">Loading...</div>
+                    ) : (
+                        <div className="grid gap-4">
+                            {tasks.map((task) => (
+                                <TaskCard
+                                    key={task.id}
+                                    task={task}
+                                    onEdit={handleEditTask}
+                                    onDelete={handleDeleteTask}
+                                    onToggle={handleToggleTask}
+                                />
+                            ))}
+                            {tasks.length === 0 && (
+                                <div className="text-center text-gray-500">No tasks found.</div>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="mt-6 flex justify-center space-x-2">
+                        <button
+                            disabled={page === 1}
+                            onClick={() => setPage((p) => p - 1)}
+                            className="rounded-md bg-gray-200 px-3 py-1 disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+                        <span className="self-center text-gray-600">
+                            Page {page} of {totalPages || 1}
+                        </span>
+                        <button
+                            disabled={page >= totalPages}
+                            onClick={() => setPage((p) => p + 1)}
+                            className="rounded-md bg-gray-200 px-3 py-1 disabled:opacity-50"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <TaskModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleModalSubmit}
-                initialData={editingTask}
-            />
-        </div>
-    );
+                <TaskModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onSubmit={handleModalSubmit}
+                    initialData={editingTask}
+                />
+            </div>
+        );
+    }
 }
