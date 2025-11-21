@@ -15,7 +15,7 @@ app.use(cors({
     'http://localhost:3000',
     'https://task-management-system-c1y9.vercel.app'
   ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   credentials: true
 }));
 app.use(express.json());
